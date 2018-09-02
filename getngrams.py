@@ -37,8 +37,7 @@ def getNgrams(query, corpus, startYear, endYear, smoothing, caseInsensitive):
     return req.url, params['content'], df
 
 
-def runQuery(argumentString):
-    arguments = argumentString.split()
+def runQuery(arguments):
     query = ' '.join([arg for arg in arguments if not arg.startswith('-')])
     if '?' in query:
         query = query.replace('?', '*')
@@ -92,6 +91,7 @@ def runQuery(argumentString):
             notifyUser = False
         url, urlquery, df = getNgrams(query, corpus, startYear, endYear,
                                       smoothing, caseInsensitive)
+        queryPhrases = [phrase.strip() for phrase in urlquery.split(",")]
         if not allData:
             if caseInsensitive is True:
                 for col in df.columns:
@@ -104,7 +104,7 @@ def runQuery(argumentString):
                     elif col.count(':heb_') == 1 or corpus.startswith('heb_'):
                         pass
                     elif col.count('(All)') == 0 and col != 'year':
-                        if col not in urlquery.split(','):
+                        if col not in queryPhrases:
                             df.pop(col)
             if '_INF' in query:
                 for col in df.columns:
@@ -151,11 +151,11 @@ def runQuery(argumentString):
             print(warningMessage)
 
 if __name__ == '__main__':
-    argumentString = ' '.join(sys.argv[1:])
-    if argumentString == '':
-        argumentString = eval(input('Enter query (or -help):'))
+    if len(sys.argv) <= 1:
+        arguments = input('Enter query (or -help):').split()
     else:
-        try:
-            runQuery(argumentString)
-        except:
-            print('An error occurred.')
+        arguments = sys.argv[1:]
+    try:
+        runQuery(arguments)
+    except:
+        print('An error occurred.')
